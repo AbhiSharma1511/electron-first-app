@@ -2,12 +2,27 @@ import osUtils from 'os-utils'
 import fs from 'fs'
 import os from 'os'
 
-export function pollResources() {
-    const cpuUsage = getCpuUsage();
-    const ramUsage = getRamUsage();
-    const storageData = getStorageData();
-    const statisData = getStaticData();
-    return { cpuUsage, ramUsage, storageData, statisData };
+const POLLING_INTERVAL = 1000;
+
+export function pollResources(mainWindow) {
+
+    setInterval(async () => {
+        const cpuUsage = await getCpuUsage();
+        const ramUsage = getRamUsage();
+        const storageData = getStorageData();
+
+        const statistics = {
+            cpuUsage,
+            ramUsage,
+            storageData
+        };
+
+        // console.log("STATISTICS:", statistics);
+        // console.log("JSON:", JSON.stringify(statistics));
+
+        mainWindow.webContents.send("statistics", statistics)
+
+    }, POLLING_INTERVAL)
 }
 
 export function getStaticData() {

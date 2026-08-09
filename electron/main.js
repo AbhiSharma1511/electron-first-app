@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import isDev from './utils.js';
-import { getStaticData } from './resourceManager.js';
+import { getStaticData, pollResources } from './resourceManager.js';
 import { getPathResolver } from './pathResolver.js';
 
 app.on("ready", () => {
@@ -30,5 +30,7 @@ app.on("ready", () => {
         console.log(data);
         return data;
     });
+
+    pollResources(mainWindow);
 
 });
