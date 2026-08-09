@@ -1,4 +1,9 @@
 import { useEffect, useState } from "react";
+import InfoCard from "./components/InfoCard";
+import StatCard from "./components/StateCard";
+import CpuChart from "./components/charts/CpuChart";
+import RamChart from "./components/charts/RamChart";
+import StorageChart from "./components/charts/StorageChart";
 
 const App = () => {
 
@@ -11,6 +16,9 @@ const App = () => {
       usage: 0
     }
   });
+  const [cpuHistory, setCpuHistory] = useState([]);
+  const [ramHistory, setRamHistory] = useState([]);
+  const [storageHistory, setStorageHistory] = useState([]);
 
   useEffect(() => {
 
@@ -21,14 +29,38 @@ const App = () => {
         await window.electronAPI.getSystemStaticData();
 
       setData(result);
+    }
+    loadData();
 
-      // Subscribe to continuously changing statistics
+    // Subscribe to continuously changing statistics
+    const unsubscribe =
       window.electronAPI.subscribeStatistics((newStats) => {
         setStats(newStats);
-      });
-    };
+        setCpuHistory((previous) => {
+          const newPoint = {
+            time: new Date().toLocaleTimeString(),
+            cpu: newStats.cpuUsage * 100
+          };
+          return [...previous, newPoint].slice(-60);
+        });
+        setRamHistory((previous) => {
+          const newPoint = {
+            time: new Date().toLocaleTimeString(),
+            ram: newStats.ramUsage * 100
+          };
+          return [...previous, newPoint].slice(-60);
+        });
+        setStorageHistory((previous) => {
+          const newPoint = {
+            time: new Date().toLocaleTimeString(),
+            storage: newStats.storageData.usage * 100
+          };
 
-    loadData();
+          return [...previous, newPoint].slice(-60);
+        });
+      });
+
+    return unsubscribe;
 
   }, []);
 
@@ -68,29 +100,38 @@ const App = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
         {/* CPU */}
-        <StatCard
-          title="CPU Usage"
-          value={`${cpu}%`}
-          percentage={cpu}
-          icon="⚡"
-        />
+        <div>
+          <StatCard
+            title="CPU Usage"
+            value={`${cpu}%`}
+            percentage={cpu}
+            icon="⚡"
+          />
+          <CpuChart data={cpuHistory} />
+        </div>
+
 
         {/* RAM */}
-        <StatCard
-          title="RAM Usage"
-          value={`${ram}%`}
-          percentage={ram}
-          icon="🧠"
-        />
+        <div>
+          <StatCard
+            title="RAM Usage"
+            value={`${ram}%`}
+            percentage={ram}
+            icon="🧠"
+          />
+          <RamChart data={ramHistory} />
+        </div>
 
         {/* Storage */}
-        <StatCard
-          title="Storage"
-          value={`${storage}%`}
-          percentage={storage}
-          icon="💾"
-        />
-
+        <div>
+          <StatCard
+            title="Storage"
+            value={`${storage}%`}
+            percentage={storage}
+            icon="💾"
+          />
+          <StorageChart data={storageHistory} />
+        </div>
       </div>
 
 
@@ -129,64 +170,5 @@ const App = () => {
     </div>
   );
 };
-
-const StatCard = ({
-  title,
-  value,
-  percentage,
-  icon
-}) => {
-
-  return (
-    <div className=" bg-slate-900  border border-slate-800  rounded-2xl  p-6  shadow-lg hover:border-slate-700 transition">
-
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-slate-400 text-sm">
-            {title}
-          </p>
-          <h2 className="text-4xl font-bold mt-2">
-            {value}
-          </h2>
-        </div>
-        <div className="  w-12 h-12 rounded-xl bg-slate-800 flex  items-center justify-center text-xl ">
-          {icon}
-        </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="mt-6">
-        <div className=" h-2 bg-slate-800 rounded-full overflow-hidden ">
-          <div className=" h-full bg-blue-500 rounded-full transition-all duration-700"
-            style={{
-              width: `${percentage}%`
-            }}
-          ></div>
-        </div>
-      </div>
-
-    </div>
-  );
-};
-
-const InfoCard = ({
-  title,
-  value
-}) => {
-
-  return (
-    <div className=" bg-slate-900 border border-slate-800 rounded-2xl p-6 ">
-
-      <p className="text-slate-400 text-sm mb-2">
-        {title}
-      </p>
-      <p className="text-lg font-medium wrap-break-word">
-        {value}
-      </p>
-
-    </div>
-  );
-};
-
 
 export default App;

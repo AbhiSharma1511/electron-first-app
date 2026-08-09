@@ -1,13 +1,14 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import path from 'path';
-import isDev from './utils.js';
+import isDev, { ipcHandle } from './utils.js';
 import { getStaticData, pollResources } from './resourceManager.js';
-import { getPathResolver } from './pathResolver.js';
+import { getPreloadPath } from './pathResolver.js';
 
 app.on("ready", () => {
+
     const mainWindow = new BrowserWindow({
         webPreferences: {
-            preload: getPathResolver(),
+            preload: getPreloadPath(),
             contextIsolation: true,
             nodeIntegration: false,
         },
@@ -25,10 +26,8 @@ app.on("ready", () => {
         );
     }
 
-    ipcMain.handle("get-static-data", () => {
-        const data = getStaticData();
-        console.log(data);
-        return data;
+    ipcHandle("get-static-data", () => {
+        return getStaticData();
     });
 
     pollResources(mainWindow);

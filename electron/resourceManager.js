@@ -1,12 +1,14 @@
 import osUtils from 'os-utils'
 import fs from 'fs'
 import os from 'os'
+import { ipcWebContentsSend } from './utils.js';
 
-const POLLING_INTERVAL = 1000;
+const POLLING_INTERVAL = 500;
 
 export function pollResources(mainWindow) {
 
     setInterval(async () => {
+        // getCpuUsage return promise so we need to use await with that.
         const cpuUsage = await getCpuUsage();
         const ramUsage = getRamUsage();
         const storageData = getStorageData();
@@ -17,10 +19,7 @@ export function pollResources(mainWindow) {
             storageData
         };
 
-        // console.log("STATISTICS:", statistics);
-        // console.log("JSON:", JSON.stringify(statistics));
-
-        mainWindow.webContents.send("statistics", statistics)
+        ipcWebContentsSend("statistics", mainWindow.webContents, statistics)
 
     }, POLLING_INTERVAL)
 }

@@ -4,9 +4,16 @@ import {
 } from 'electron';
 import isDev from './utils.js';
 
-export function getPathResolver() {
+export function getPreloadPath() {
     return path.join(
         app.getAppPath(),
         isDev() ? './electron/preload.cjs' : './dist-electron/preload.cjs'
+    )
+}
+
+export function getUIPath() {
+    return path.join(
+        app.getAppPath(),
+        isDev() ? "/index.html" : "./dist-react/index.html"
     )
 }
